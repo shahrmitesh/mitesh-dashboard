@@ -5625,6 +5625,105 @@ document.addEventListener('keydown', function(e){
   if (saved && saved !== 'overview') switchDomain(saved);
 })();
 
+
+
+/* ═══════════════════════════════════════════════════════════
+   OVERVIEW / GROWTH ARCHITECT / PERSONAL GROWTH — live data
+   These vars are patched nightly by scripts/patch_dashboard.py
+   from live Notion + Todoist + Finance Tracker queries. Do NOT
+   hand-edit values here except as a one-time seed; the patch
+   script replaces this whole block via exact-string match.
+   ═══════════════════════════════════════════════════════════ */
+
+var OVERVIEW_DATA = {
+  lastSynced: "2026-07-31",
+  overdueCount: 92,
+  todayTasksByDomain: {
+    cun: 0, growth: 0, financial: 0, personalGrowth: 0, familySocial: 0
+  },
+  cunAlert: "92 overdue tasks system-wide — top clusters: Catering (11), Financials (7), untagged (6)",
+  growthMetric: "Stalled since Jun 1 reset — no active client/offer tasks tracked",
+  netWorthApprox: null
+};
+
+var GROWTH_DATA = {
+  lastSynced: "2026-07-31",
+  projectStatus: "Planned",
+  reviewNote: "Reset Jun 1 — start from Jul 1. CUN takes priority through June.",
+  activeFocusFromPage: [
+    "Draft LinkedIn positioning bio using positioning statement",
+    "Define Tier 1 offer at $500",
+    "Content creation cadence — thought leadership posts",
+    "Refine Magic Middle and unique value proposition"
+  ],
+  activeFocusTrackedAsTasks: [],
+  ceCourseTasks: {
+    total: 0,
+    nextDue: null
+  }
+};
+
+var PERSONALGROWTH_DATA = {
+  lastSynced: "2026-07-31",
+  learningTasks: []
+};
+
+function renderOverviewLive(){
+  var el = document.getElementById('overview-today-tasks');
+  if (el) {
+    if (OVERVIEW_DATA.overdueCount > 0) {
+      el.innerHTML = '<div style="color:var(--red);font-weight:700;margin-bottom:8px">⚠ ' +
+        OVERVIEW_DATA.overdueCount + ' overdue tasks system-wide</div>' +
+        '<div style="font-size:12px;color:var(--t4)">Last synced: ' + OVERVIEW_DATA.lastSynced + '</div>';
+    } else {
+      el.innerHTML = '<div style="color:var(--grn)">All caught up — no overdue tasks.</div>';
+    }
+  }
+  var alertEl = document.getElementById('overview-cun-alert');
+  if (alertEl) alertEl.textContent = OVERVIEW_DATA.cunAlert;
+  var growthEl = document.getElementById('overview-growth-metric');
+  if (growthEl) growthEl.textContent = OVERVIEW_DATA.growthMetric;
+  var nwEl = document.getElementById('overview-networth');
+  if (nwEl && typeof ACCOUNTS !== 'undefined') {
+    var total = 0;
+    ACCOUNTS.forEach(function(a){
+      total += (a.type === 'credit') ? -Math.abs(a.startingBalance||0) : (a.startingBalance||0);
+    });
+    nwEl.textContent = '$' + total.toLocaleString('en-US',{maximumFractionDigits:0});
+  }
+}
+
+function renderGrowthLive(){
+  var el = document.getElementById('growth-active-focus');
+  if (!el) return;
+  var h = '<div style="font-size:12px;color:var(--yel);margin-bottom:10px">' +
+    'Status: ' + GROWTH_DATA.projectStatus + ' — ' + GROWTH_DATA.reviewNote + '</div>';
+  if (GROWTH_DATA.activeFocusTrackedAsTasks.length === 0) {
+    h += '<div class="empty-state">' +
+      '<div class="empty-state-title">Active Focus items exist on the project page, not as tracked tasks</div>' +
+      '<div class="empty-state-body">These were written into the Notion project page but never turned into real Tasks DB entries:<br><br>' +
+      GROWTH_DATA.activeFocusFromPage.map(function(f){return '&bull; ' + f;}).join('<br>') +
+      '</div></div>';
+  }
+  el.innerHTML = h;
+}
+
+function renderPersonalGrowthLive(){
+  var el = document.getElementById('personalgrowth-learning');
+  if (!el) return;
+  if (PERSONALGROWTH_DATA.learningTasks.length === 0) {
+    el.innerHTML = '<div class="empty-state">' +
+      '<div class="empty-state-title">No active learning items captured yet</div>' +
+      '<div class="empty-state-body">Books, courses, and podcast progress will appear here once captured.</div></div>';
+  }
+}
+
+(function initLiveData(){
+  renderOverviewLive();
+  renderGrowthLive();
+  renderPersonalGrowthLive();
+})();
+
 </script>
 </body>
 </html>
